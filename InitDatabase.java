@@ -5,25 +5,24 @@ import java.sql.*;
 //java -cp "postgresql-42.7.3.jar;" item
 
 public class InitDatabase{
-    public static void main(String[] args) throws Exception{
-        Class.forName("org.postgresql.Driver");
-
-        Connection con = DriverManager.getConnection("jdbc:postgresql://kafka.iem/kb483753", "kb483753", "kb483753");
-
+    //clear and initialize all the tables
+    public static void initAll(Connection con) throws Exception{
         clearAll(con);
 
         initMachine(con);
         initAbonnement(con);
-        // Il faut forcement init dabord les abonnements avant les clients, car les clients utilise des clefs etrangere vers abonnement
-        initClient(con);
         initCoach(con);
+        // Il faut forcement init dabord les abonnements et les coachs avant les clients, car les clients utilise des clefs etrangere vers abonnement et coach
+        initClient(con);
         // InitSessiobPrivee dois passer apres Coach
         initSessionPrivee(con);
         // Table associative entre les sessions privee et les clients. Relation n-n, car un client peut avoir plusieurs session privee, et une session privee peut avoir plusieur client inscrit
         initClientSessionPrivee(con);
 
+        System.out.println("InitDatabase: All the initializations were executed without errors.");
     }
 
+    //Init functions
     private static void initMachine(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute("CREATE TABLE proj.machine (id INTEGER PRIMARY KEY, nom TEXT, prochMaintenance DATE, intervalMaintenanceEnJour INTEGER);");
@@ -157,11 +156,11 @@ public class InitDatabase{
     private static void initClient(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute(
-            "CREATE TABLE proj.client (id INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, typeAbonnement INTEGER REFERENCES proj.abonnement(id), finAbonnement DATE);"
+            "CREATE TABLE proj.client (id INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, typeAbonnement INTEGER REFERENCES proj.abonnement(id), finAbonnement DATE, coachAttitrer INTEGER REFERENCES proj.coach(id));"
         );
         statTableCreation.close();
 
-        PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement) VALUES (?, ?, ?, ?, ?)");
+        PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer) VALUES (?, ?, ?, ?, ?, ?)");
 
         int idCount = 1;
 
@@ -170,6 +169,7 @@ public class InitDatabase{
         addToTable.setString(3, "Sebastien");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
+        addToTable.setInt(6, 1);
 
         addToTable.executeUpdate();
 
@@ -178,6 +178,8 @@ public class InitDatabase{
         addToTable.setString(3, "Kamil");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
+        //donne a notre table un null avec comme type INTEGER, pour eviter les erreurs de type
+        addToTable.setNull(6, java.sql.Types.INTEGER);
 
         addToTable.executeUpdate();
 
@@ -186,6 +188,7 @@ public class InitDatabase{
         addToTable.setString(3, "Brian");
         addToTable.setInt(4, 4);
         addToTable.setDate(5, randomDate());
+        addToTable.setInt(6, 1);
 
         addToTable.executeUpdate();
 
@@ -194,6 +197,7 @@ public class InitDatabase{
         addToTable.setString(3, "Caio");
         addToTable.setInt(4, 3);
         addToTable.setDate(5, randomDate());
+        addToTable.setNull(6, java.sql.Types.INTEGER);
 
         addToTable.executeUpdate();
 
@@ -210,6 +214,7 @@ public class InitDatabase{
         addToTable.setString(3, "Nicolas");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
+        addToTable.setInt(6, 1);
 
         addToTable.executeUpdate();
         addToTable.close();
@@ -320,6 +325,8 @@ public class InitDatabase{
         addToTable.close();
     }
 
+
+    //Misc functions
     private static void clearAll(Connection con) throws Exception{
         Statement deleteAndRecreate = con.createStatement();
 
