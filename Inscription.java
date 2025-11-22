@@ -3,29 +3,20 @@ import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Inscription{
-    public static void main(String []args) throws Exception{
-        Scanner scanner = new Scanner(System.in);
-        Class.forName("org.postgresql.Driver");
-
-        Connection con = DriverManager.getConnection("jdbc:postgresql://kafka.iem/kb483753", "kb483753", "kb483753");
-
-        InitDatabase.initAll(con);
-
+    public static void main(String []args,Connection con, Scanner scanner) throws Exception{
         int choiceOfInscription;
         do{
-            System.out.print("//////////////////////////////////////////////\n");
-            System.out.println("1. Inscription a la salle de musculation\n2. Inscription a une session privee\n3. Quitter");
+            System.out.println("\n//////////////////////////////////////////////\n1. Inscription a la salle de musculation\n2. Inscription a une session privee\n3. Quitter\n");
             choiceOfInscription = scanner.nextInt();
 
             if(choiceOfInscription == 1){
                 inscriptionMusculation(con, scanner);
             }else if(choiceOfInscription == 2){
                 inscriptionSessionPrivee(con, scanner);
+            }else if(choiceOfInscription == 3){
+                App.main(args);
             }
         }while(choiceOfInscription != 3);
-
-        //je ne ferme pas les scanner dans mes fonctions car cela arrete le programme avec une erreur a partir de la 2eme iteration de la boucle ci-dessus
-        scanner.close();
     }
 
     private static void inscriptionMusculation(Connection con, Scanner scanner) throws Exception{
@@ -37,7 +28,7 @@ public class Inscription{
 
         int choixAbonnement;
         do{
-            System.out.println("Choix du Forfait:\n     1.Basic : 19.99eur\n      2.Premium : 29.99eur\n       3.Premium+ : 39.99eur");
+            System.out.println("\nChoix du Forfait:\n     1.Basic : 19.99eur\n      2.Premium : 29.99eur\n       3.Premium+ : 39.99eur\n");
             choixAbonnement = scanner.nextInt();
         }while(choixAbonnement < 1 || choixAbonnement > 3);
 
@@ -50,7 +41,7 @@ public class Inscription{
         addToTable.setInt(3, choixAbonnement);
 
         if(choixAbonnement == 3){
-            System.out.println("Voulais vous des a present choisir un coach : ");
+            System.out.println("\nVoulez vous des a present choisir un coach : ");
 
             Statement coachStat = con.createStatement();
             ResultSet allCoach = coachStat.executeQuery("SELECT nom, prenom FROM proj.coach");
@@ -96,8 +87,15 @@ public class Inscription{
         Statement generalStat = con.createStatement();
         ResultSet resInscriptionType = generalStat.executeQuery("SELECT id, typeAbonnement FROM proj.client WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
 
-        //pas besoin de verif car le client a forcement un type d'abonnement
-        resInscriptionType.next();
+        //verification si il existe des donnees sur la personne entrer, si resInscriptionType.next() n'a pas de valeur il va nous renvoyer false
+        boolean isFound = resInscriptionType.next();
+
+        if(isFound == false){
+            throw new IllegalArgumentException(
+                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas etait trouver. Veuillez verifier si les donnees on etait ecrite correctement."
+            );
+        }
+
         int idUser = resInscriptionType.getInt(1);
         int aboType = resInscriptionType.getInt(2);
         resInscriptionType.close();
@@ -107,6 +105,8 @@ public class Inscription{
             ResultSet allPossibleSessions = generalStat.executeQuery(
                 "SELECT c.nom, c.prenom, dateDebut, dureeEnMin FROM proj.sessionPrivee sp INNER JOIN proj.coach c On sp.coachAttitrer = c.id"
             );
+
+            System.out.println();
             
             int count = 1;
             while(allPossibleSessions.next()){
