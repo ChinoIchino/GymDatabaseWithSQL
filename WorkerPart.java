@@ -7,7 +7,7 @@ public class WorkerPart {
 
         int choice;
         do{
-            System.out.println("\n//////////////////////////////////////////////\n1. Mettre a jour la prochaine maintenance\n2. Quitter\n");
+            System.out.println("\n//////////////////////////////////////////////\n1. Mettre à jour la prochaine maintenance\n2. Quitter\n");
             choice = scanner.nextInt();
             if(choice == 1){
                 maintenance(con, scanner);
@@ -17,7 +17,7 @@ public class WorkerPart {
 
     private static void maintenance(Connection con, Scanner scanner) throws Exception{
         
-        System.out.println("\nDonner l'id de la machine qui viens d'avoir une maintenance :\n");
+        System.out.println("\nEntrez l'id de la machine qui vient d'avoir une maintenance :\n");
         int idMachine = scanner.nextInt();
     
         Statement generalStat = con.createStatement();
@@ -27,23 +27,24 @@ public class WorkerPart {
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nWorkerPart.java ERREUR: La machine avec l'id : " + idMachine + " n'a pas etait trouver. Veuillez verifier si l'id de la machine est correcte."
+                "\nWorkerPart.java ERREUR: La machine avec l'id : " + idMachine + " n'a pas été trouvée. Veuillez verifier si l'id de la machine est correct."
             );
         }
 
         int intervalDeMaintenance = resOfMachine.getInt(1);
         resOfMachine.close();
 
-        LocalDate localDate = LocalDate.now().plusDays(intervalDeMaintenance); //ajoute la valeur en jour voulu dans la date actuel
+        LocalDate localDate = LocalDate.now().plusDays(intervalDeMaintenance); //ajoute la valeur en jours souhaité dans la date actuelle
         
-        Date newDate = Date.valueOf(localDate); //rechange la valeur en type Date pour la requete sql
+        Date newDate = Date.valueOf(localDate); //reconvertit la valeur en type Date pour la requête SQL
 
         generalStat.execute("UPDATE proj.machine SET prochMaintenance = \'" + newDate + "\' WHERE id = " + idMachine);
 
-        //ajoute la maintenance dans la table Maintenance
+        //Ajoute la maintenance dans la table Maintenance
         generalStat.execute("INSERT INTO proj.Maintenance(id, idMachine, dateDeMaintenance) VALUES ((SELECT COUNT(*) + 1 FROM proj.maintenance), " + idMachine + ", CURRENT_DATE);");
-        System.out.println("\nLa maintenance a bien etait enregistrer.");
+        System.out.println("\nLa maintenance a bien été enregistrée.");
 
         generalStat.close();
     }
 }
+
