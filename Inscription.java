@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Inscription{
@@ -12,13 +13,14 @@ public class Inscription{
 
         int choiceOfInscription;
         do{
+            System.out.print("//////////////////////////////////////////////\n");
             System.out.println("1. Inscription a la salle de musculation\n2. Inscription a une session privee\n3. Quitter");
             choiceOfInscription = scanner.nextInt();
 
             if(choiceOfInscription == 1){
-                inscriptionMusculation(con);
+                inscriptionMusculation(con, scanner);
             }else if(choiceOfInscription == 2){
-                inscriptionSessionPrivee(con);
+                inscriptionSessionPrivee(con, scanner);
             }
         }while(choiceOfInscription != 3);
 
@@ -26,9 +28,7 @@ public class Inscription{
         scanner.close();
     }
 
-    private static void inscriptionMusculation(Connection con) throws Exception{
-        Scanner scanner = new Scanner(System.in);
-
+    private static void inscriptionMusculation(Connection con, Scanner scanner) throws Exception{
         System.out.println("Nom : ");
         String nom = scanner.next();
 
@@ -75,14 +75,17 @@ public class Inscription{
             addToTable.setNull(5, java.sql.Types.INTEGER);
         }
 
-        addToTable.setDate(4, Date.valueOf("2025-12-31"));
+
+        LocalDate temp = LocalDate.now().plusDays(30);
+        Date newDate = Date.valueOf(temp);
+
+        addToTable.setDate(4, newDate);
         addToTable.executeUpdate();
 
         addToTable.close();
     }
 
-    private static void inscriptionSessionPrivee(Connection con) throws Exception{
-        Scanner scanner = new Scanner(System.in);
+    private static void inscriptionSessionPrivee(Connection con, Scanner scanner) throws Exception{
 
         System.out.println("Nom : ");
         String nom = scanner.next();
