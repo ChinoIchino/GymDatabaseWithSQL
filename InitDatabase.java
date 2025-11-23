@@ -13,13 +13,13 @@ public class InitDatabase{
         initMaintenance(con);
         initAbonnement(con);
         initCoach(con);
-        // Il faut forcement init dabord les abonnements et les coachs avant les clients, car les clients utilise des clefs etrangere vers abonnement et coach
+        // Il faut forcément initialiser d'abord les abonnements et les coachs avant les clients, car les clients utilisent des clés étrangères vers abonnement et coach
         initClient(con);
-        // InitSessiobPrivee dois passer apres Coach
+        // InitSessiobPrivee dois passer après Coach
         initSessionPrivee(con);
-        // Table associative entre les sessions privee et les clients. Relation n-n, car un client peut avoir plusieurs session privee, et une session privee peut avoir plusieur client inscrit
+        // Table associative entre les sessions privées et les clients. Relation n-n, car un client peut avoir plusieurs sessions privées, et une session privée peut avoir plusieurs clients inscrits
         initClientSessionPrivee(con);
-        //table qui utilise la table coach et client
+        // Table qui utilise les tables coach et client
         initCoachingPrivee(con);
 
         System.out.println("InitDatabase: All the initializations were executed without errors.");
@@ -169,7 +169,7 @@ public class InitDatabase{
 
         addToTable.setInt(1, idCount++);
         addToTable.setString(2, "Tamby");
-        addToTable.setString(3, "Sebastien");
+        addToTable.setString(3, "Sébastien");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
         addToTable.setInt(6, 1);
@@ -181,7 +181,7 @@ public class InitDatabase{
         addToTable.setString(3, "Kamil");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
-        //donne a notre table un null avec comme type INTEGER, pour eviter les erreurs de type
+        //donne à notre table une valeur null avec comme type INTEGER, pour éviter les erreurs de type
         addToTable.setNull(6, java.sql.Types.INTEGER);
 
         addToTable.executeUpdate();
@@ -289,7 +289,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
         addToTable.close();
     }
-    //table associative entre les client et les sessions privee
+    //Table associative entre les clients et les sessions privées
     private static void initClientSessionPrivee(Connection con) throws Exception{
         Statement statCreationTable = con.createStatement();
         statCreationTable.execute("CREATE TABLE proj.client_sessionPrivee(idClient INTEGER REFERENCES proj.client(id), idSessionPrivee INTEGER REFERENCES proj.sessionPrivee(id));");
@@ -333,7 +333,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
         addToTable.close();
     }
-    // table de session privee mais seulement pour un coach avec une personne
+    // Table de sessions privées mais seulement pour un coach avec une personne
     private static void initCoachingPrivee(Connection con) throws Exception{
         Statement generalStat = con.createStatement();
         generalStat.execute(
@@ -436,4 +436,5 @@ public class InitDatabase{
 
         return Timestamp.valueOf(String.valueOf(year) + "-" + month + "-" + day + " " + hour + ":" + String.valueOf(min * 10) + ":00");
     }
+
 }
