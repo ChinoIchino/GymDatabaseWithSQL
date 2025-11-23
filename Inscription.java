@@ -6,7 +6,7 @@ public class Inscription{
     public static void main(String []args,Connection con, Scanner scanner) throws Exception{
         int choiceOfInscription;
         do{
-            System.out.println("\n//////////////////////////////////////////////\n1. Inscription a la salle de musculation\n2. Inscription a une session privee\n3. Quitter\n");
+            System.out.println("\n//////////////////////////////////////////////\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Quitter\n");
             choiceOfInscription = scanner.nextInt();
 
             if(choiceOfInscription == 1){
@@ -23,12 +23,12 @@ public class Inscription{
         System.out.println("Nom : ");
         String nom = scanner.next();
 
-        System.out.println("Prenom : ");
+        System.out.println("Prénom : ");
         String prenom = scanner.next();
 
         int choixAbonnement;
         do{
-            System.out.println("\nChoix du Forfait:\n     1.Basic : 19.99eur\n      2.Premium : 29.99eur\n       3.Premium+ : 39.99eur\n");
+            System.out.println("\nChoix du Forfait:\n     1.Basic : 19.99 EUR\n      2.Premium : 29.99 EUR\n       3.Premium+ : 39.99 EUR\n");
             choixAbonnement = scanner.nextInt();
         }while(choixAbonnement < 1 || choixAbonnement > 3);
 
@@ -41,7 +41,7 @@ public class Inscription{
         addToTable.setInt(3, choixAbonnement);
 
         if(choixAbonnement == 3){
-            System.out.println("\nVoulez vous des a present choisir un coach : ");
+            System.out.println("\nVoulez-vous dès à présent choisir un coach : ");
 
             Statement coachStat = con.createStatement();
             ResultSet allCoach = coachStat.executeQuery("SELECT nom, prenom FROM proj.coach");
@@ -50,13 +50,13 @@ public class Inscription{
             while(allCoach.next()){
                 System.out.println(count++ + " : " + allCoach.getString(1) + " " + allCoach.getString(2));
             }
-            System.out.println(count + " : Remettre a plus tard");
+            System.out.println(count + " : Remettre à plus tard");
             coachStat.close();
             allCoach.close();
 
             int choiceCoach = scanner.nextInt();
             
-            //si le choix est entre les coachs possible
+            //si le choix est parmi les coachs possibles
             if(choiceCoach >= 1 &&  choiceCoach < count){
                 addToTable.setInt(5, choiceCoach);
             }else{
@@ -87,12 +87,12 @@ public class Inscription{
         Statement generalStat = con.createStatement();
         ResultSet resInscriptionType = generalStat.executeQuery("SELECT id, typeAbonnement FROM proj.client WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
 
-        //verification si il existe des donnees sur la personne entrer, si resInscriptionType.next() n'a pas de valeur il va nous renvoyer false
+        //vérification s'il existe des données sur la personne entrée, si resInscriptionType.next() n'a pas de valeur, il va nous renvoyer false
         boolean isFound = resInscriptionType.next();
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas etait trouver. Veuillez verifier si les donnees on etait ecrite correctement."
+                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
             );
         }
 
@@ -100,7 +100,7 @@ public class Inscription{
         int aboType = resInscriptionType.getInt(2);
         resInscriptionType.close();
 
-        //peut s'inscrire a une session privee
+        //peut s'inscrire à une session privée
         if(aboType >= 2){
             ResultSet allPossibleSessions = generalStat.executeQuery(
                 "SELECT c.nom, c.prenom, dateDebut, dureeEnMin FROM proj.sessionPrivee sp INNER JOIN proj.coach c On sp.coachAttitrer = c.id"
@@ -111,8 +111,8 @@ public class Inscription{
             int count = 1;
             while(allPossibleSessions.next()){
                 System.out.println(
-                    count++ + " : Session du " + allPossibleSessions.getString(3) + " / duree : " + allPossibleSessions.getInt(4) 
-                    + "min / Avec " + allPossibleSessions.getString(1) + " " + allPossibleSessions.getString(2)
+                    count++ + " : Session du " + allPossibleSessions.getString(3) + " / durée : " + allPossibleSessions.getInt(4) 
+                    + "min / avec " + allPossibleSessions.getString(1) + " " + allPossibleSessions.getString(2)
                 );
             }
             allPossibleSessions.close();
@@ -121,12 +121,13 @@ public class Inscription{
             if(choiceOfSession > 0 && choiceOfSession < count){
                 generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + choiceOfSession + ")");
             }else{
-                System.out.println("Numero de session non reconnue, Veuillez reessayer ulterieurement");
+                System.out.println("Numéro de session non reconnu, veuillez réessayer ultérieurement");
             }
         }else{
-            System.out.println("Malheuresement vous ne possedez pas l'abonnement necessaire pour pouvoir souscrire a une session privee");
+            System.out.println("Malheuresement, vous ne possédez pas l'abonnement nécessaire pour pouvoir souscrire à une session privée");
         }
 
         generalStat.close();
     }
 }
+
