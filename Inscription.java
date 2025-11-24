@@ -6,7 +6,7 @@ public class Inscription{
     public static void main(String []args,Connection con, Scanner scanner) throws Exception{
         int choiceOfInscription;
         do{
-            System.out.println("\n//////////////////////////////////////////////\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Quitter\n");
+            System.out.println("\n//////////////////////////////////////////////\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Date d'abonnement expirer\n4. Quitter\n");
             choiceOfInscription = scanner.nextInt();
 
             if(choiceOfInscription == 1){
@@ -14,9 +14,39 @@ public class Inscription{
             }else if(choiceOfInscription == 2){
                 inscriptionSessionPrivee(con, scanner);
             }else if(choiceOfInscription == 3){
+                peutEntrer(con, scanner);
+            }else if(choiceOfInscription == 4){
                 App.main(args);
             }
-        }while(choiceOfInscription != 3);
+        }while(choiceOfInscription != 4);
+    }
+
+    private static void peutEntrer(Connection con, Scanner scanner) throws Exception{
+        System.out.println("Nom : ");
+        String nom = scanner.next();
+
+
+        System.out.println("Prénom : ");
+        String prenom = scanner.next();
+
+        Statement generalStat = con.createStatement();
+        ResultSet resTypeAbo = generalStat.executeQuery("SELECT typeAbonnement FROM proj.client WHERE prenom ILIKE \'" + prenom + "\' AND nom ILIKE \'" + nom + "\'");
+
+        boolean isFound = resTypeAbo.next();
+
+        if(isFound == false){
+            throw new IllegalArgumentException(
+                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
+            );
+        }
+
+        int typeAbo = resTypeAbo.getInt(1);
+
+        if(typeAbo > 0){
+            System.out.println("Le client : " + nom + " " + prenom + " peut entrer dans la salle");
+        }else{
+            System.out.println("Le client : " + nom + " " + prenom + " ne peut pas entrer");
+        }
     }
 
     private static void inscriptionMusculation(Connection con, Scanner scanner) throws Exception{
