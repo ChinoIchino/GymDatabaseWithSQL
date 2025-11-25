@@ -198,7 +198,6 @@ public class partieClient{
             //redemande la valeur tant qu'elle n'est pas adequate
             do{
                 choice = scanner.nextInt();
-                System.out.println("\nGot the choice = " + choice);
             }while(choice < 1 || choice > count);
 
             if(choice == count){
@@ -214,4 +213,5 @@ public class partieClient{
         generalStat.close();
     }
 }
+
 
