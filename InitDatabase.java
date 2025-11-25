@@ -10,14 +10,17 @@ public class InitDatabase{
         clearAll(con);
 
         initMachine(con);
+        initMaintenance(con);
         initAbonnement(con);
         initCoach(con);
-        // Il faut forcement init dabord les abonnements et les coachs avant les clients, car les clients utilise des clefs etrangere vers abonnement et coach
+        // Il faut forcément initialiser d'abord les abonnements et les coachs avant les clients, car les clients utilisent des clés étrangères vers abonnement et coach
         initClient(con);
-        // InitSessiobPrivee dois passer apres Coach
+        // InitSessiobPrivee dois passer après Coach
         initSessionPrivee(con);
-        // Table associative entre les sessions privee et les clients. Relation n-n, car un client peut avoir plusieurs session privee, et une session privee peut avoir plusieur client inscrit
+        // Table associative entre les sessions privées et les clients. Relation n-n, car un client peut avoir plusieurs sessions privées, et une session privée peut avoir plusieurs clients inscrits
         initClientSessionPrivee(con);
+        // Table qui utilise les tables coach et client
+        initCoachingPrivee(con);
 
         System.out.println("InitDatabase: All the initializations were executed without errors.");
     }
@@ -166,7 +169,7 @@ public class InitDatabase{
 
         addToTable.setInt(1, idCount++);
         addToTable.setString(2, "Tamby");
-        addToTable.setString(3, "Sebastien");
+        addToTable.setString(3, "Sébastien");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
         addToTable.setInt(6, 1);
@@ -178,7 +181,7 @@ public class InitDatabase{
         addToTable.setString(3, "Kamil");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
-        //donne a notre table un null avec comme type INTEGER, pour eviter les erreurs de type
+        //donne à notre table une valeur null avec comme type INTEGER, pour éviter les erreurs de type
         addToTable.setNull(6, java.sql.Types.INTEGER);
 
         addToTable.executeUpdate();
@@ -233,11 +236,17 @@ public class InitDatabase{
         addToTable.setString(3, "Kevin");
 
         addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setString(2, "Wojna");
+        addToTable.setString(3, "Pawel");
+
+        addToTable.executeUpdate();
         addToTable.close();
     }
     private static void initSessionPrivee(Connection con) throws Exception{
         Statement statCreationTable = con.createStatement();
-        statCreationTable.execute("CREATE TABLE proj.sessionPrivee(id INTEGER PRIMARY KEY, coachAttitrer INTEGER REFERENCES proj.coach(id), dateDebut DATE, dureeEnMin INTEGER);");
+        statCreationTable.execute("CREATE TABLE proj.sessionPrivee(id INTEGER PRIMARY KEY, coachAttitrer INTEGER REFERENCES proj.coach(id), dateDebut TIMESTAMP, dureeEnMin INTEGER);");
         statCreationTable.close();
 
         PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.sessionPrivee(id, coachAttitrer, dateDebut, dureeEnMin) VALUES (?, ?, ?, ?)");
@@ -246,41 +255,41 @@ public class InitDatabase{
 
         addToTable.setInt(1, idCount++);
         addToTable.setInt(2, 1);
-        addToTable.setDate(3, randomDate());
+        addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 90);
 
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
         addToTable.setInt(2, 1);
-        addToTable.setDate(3, randomDate());
+        addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 60);
 
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
         addToTable.setInt(2, 1);
-        addToTable.setDate(3, randomDate());
+        addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 60);
 
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
         addToTable.setInt(2, 1);
-        addToTable.setDate(3, randomDate());
+        addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 150);
 
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
         addToTable.setInt(2, 1);
-        addToTable.setDate(3, randomDate());
+        addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 90);
 
         addToTable.executeUpdate();
         addToTable.close();
     }
-    //table associative entre les client et les sessions privee
+    //Table associative entre les clients et les sessions privées
     private static void initClientSessionPrivee(Connection con) throws Exception{
         Statement statCreationTable = con.createStatement();
         statCreationTable.execute("CREATE TABLE proj.client_sessionPrivee(idClient INTEGER REFERENCES proj.client(id), idSessionPrivee INTEGER REFERENCES proj.sessionPrivee(id));");
@@ -324,6 +333,73 @@ public class InitDatabase{
         addToTable.executeUpdate();
         addToTable.close();
     }
+    // Table de sessions privées mais seulement pour un coach avec une personne
+    private static void initCoachingPrivee(Connection con) throws Exception{
+        Statement generalStat = con.createStatement();
+        generalStat.execute(
+            "CREATE TABLE proj.CoachingPrivee(id INTEGER PRIMARY KEY, idCoach INTEGER REFERENCES proj.coach(id), idClient INTEGER REFERENCES proj.client(id), dateDebut TIMESTAMP, dureeEnMin INTEGER);"
+        );
+        generalStat.close();
+
+        PreparedStatement addToTable = con.prepareStatement(
+            "INSERT INTO proj.CoachingPrivee(id, idCoach, idClient, dateDebut, dureeEnMin) VALUES (?, ?, ?, ?, ?);"
+        );
+
+        int idCount = 1;
+        addToTable.setInt(1, idCount++);
+        addToTable.setInt(2, 1);
+        addToTable.setInt(3, 1);
+        addToTable.setTimestamp(4, randomTimestamp());
+        addToTable.setInt(5, 60);
+
+        addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setInt(2, 1);
+        addToTable.setInt(3, 6);
+        addToTable.setTimestamp(4, randomTimestamp());
+        addToTable.setInt(5, 90);
+
+        addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setInt(2, 2);
+        addToTable.setInt(3, 5);
+        addToTable.setTimestamp(4, randomTimestamp());
+        addToTable.setInt(5, 90);
+
+        addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setInt(2, 2);
+        addToTable.setInt(3, 5);
+        addToTable.setTimestamp(4, randomTimestamp());
+        addToTable.setInt(5, 120);
+
+        addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setInt(2, 1);
+        addToTable.setInt(3, 2);
+        addToTable.setTimestamp(4, randomTimestamp());
+        addToTable.setInt(5, 50);
+
+        addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setInt(2, 2);
+        addToTable.setInt(3, 3);
+        addToTable.setTimestamp(4, randomTimestamp());
+        addToTable.setInt(5, 80);
+
+        addToTable.executeUpdate();
+        addToTable.close();
+    }
+    private static void initMaintenance(Connection con) throws Exception{
+        Statement generalStat = con.createStatement();
+        generalStat.execute("CREATE TABLE proj.Maintenance(id INTEGER PRIMARY KEY, idMachine INTEGER REFERENCES proj.machine(id), dateDeMaintenance DATE);");
+        generalStat.close();
+    }
 
 
     //Misc functions
@@ -345,4 +421,20 @@ public class InitDatabase{
 
         return Date.valueOf(String.valueOf(year) + "-" + month + "-" + day);
     }
+
+    private static Timestamp randomTimestamp(){
+        int year = (int) (Math.random() * 2 + 2025);
+        String month = String.valueOf((int) (Math.random() * 12 + 1));
+        String day = String.valueOf((int) (Math.random() * 29 + 1));
+
+        if(year == 2025){
+            month = "12";
+        }
+
+        String hour = String.valueOf((int) (Math.random() * 12 + 6));
+        int min = (int)(Math.random() * 6);
+
+        return Timestamp.valueOf(String.valueOf(year) + "-" + month + "-" + day + " " + hour + ":" + String.valueOf(min * 10) + ":00");
+    }
+
 }
