@@ -7,7 +7,7 @@ public class partiePro {
 
         int choice;
         do{
-            System.out.println("\n//////////////////////////////////////////////\n1. Mettre à jour la prochaine maintenance\n2. Quitter\n");
+            System.out.println("\n|//|//|//|//|//|//|//|//|//|//|//|//|//|//|//|//|\n1. Mettre à jour la prochaine maintenance\n2. Quitter\n");
             choice = scanner.nextInt();
             if(choice == 1){
                 maintenance(con, scanner);
@@ -27,7 +27,7 @@ public class partiePro {
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nWorkerPart.java ERREUR: La machine avec l'id : " + idMachine + " n'a pas été trouvée. Veuillez verifier si l'id de la machine est correct."
+                "\nWorkerPart.java ERREUR: La machine avec l'id : " + idMachine + " n'a pas été trouvée. Veuillez vérifier si l'id de la machine est correct."
             );
         }
 
@@ -47,4 +47,5 @@ public class partiePro {
         generalStat.close();
     }
 }
+
 
