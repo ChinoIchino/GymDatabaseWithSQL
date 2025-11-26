@@ -7,7 +7,7 @@ public class partieClient{
         int choiceOfInscription;
         do{
             System.out.println(
-                "\n//////////////////////////////////////////////\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
+                "\n|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
                 + "4. Date d'abonnement expirer\n5. Quitter\n"
                 );
             choiceOfInscription = scanner.nextInt();
@@ -153,7 +153,20 @@ public class partieClient{
 
             int choiceOfSession = scanner.nextInt(); 
             if(choiceOfSession > 0 && choiceOfSession < count){
-                generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + choiceOfSession + ")");
+                // Vérification pour savoir si le client est déja inscrit à la session
+                ResultSet checkAlreadyRegistred = generalStat.executeQuery("SELECT COUNT(*) FROM proj.client_sessionPrivee WHERE idClient = "+ idUser +" AND idSessionPrivee = "+ choiceOfSession);
+                checkAlreadyRegistred.next();
+                int countAlreadyRegistered = checkAlreadyRegistred.getInt(1);
+                checkAlreadyRegistred.close();
+
+                if(countAlreadyRegistered > 0){
+                    System.out.println("Vous êtes déja inscrit à cette session privée !");
+                }
+                else{
+                    // Si le client n'est pas déja inscrit, on l'inscrit
+                    generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + choiceOfSession + ")");
+                    System.out.println("Vous avez bien été inscrit à cette session!");
+                }
             }else{
                 System.out.println("Numéro de session non reconnu, veuillez réessayer ultérieurement");
             }
@@ -169,11 +182,6 @@ public class partieClient{
             }while(rep != 0 && rep != 1);
             
             if(rep == 1){
-                ResultSet val = generalStat.executeQuery("SELECT solde FROM proj.client WHERE id = " + idUser);
-                val.next();
-                double solde = val.getDouble(1) + 4.99;
-                val.close();
-                generalStat.execute("UPDATE proj.client SET solde = "+ solde +" WHERE id = " + idUser);
                 ResultSet choice = generalStat.executeQuery("SELECT c.nom, c.prenom, dateDebut, dureeEnMin FROM proj.sessionPrivee sp INNER JOIN proj.coach c On sp.coachAttitrer = c.id");
                 System.out.println();
             
@@ -187,7 +195,28 @@ public class partieClient{
                 choice.close();
                 int userChoice = scanner.nextInt(); 
                 if(userChoice > 0 && userChoice < count){
-                    generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + userChoice + ")");
+                    // Vérification si le client à déjà été inscrit à une session
+                    ResultSet AlreadyRegistred = generalStat.executeQuery("SELECT COUNT(*) FROM proj.client_sessionPrivee WHERE idClient = "+ idUser+" AND idSessionPrivee = "+ userChoice);
+                    AlreadyRegistred.next();
+                    int ifAlreadyRegistred = AlreadyRegistred.getInt(1);
+                    AlreadyRegistred.close();
+                    
+                    if(ifAlreadyRegistred > 0){
+                        System.out.println("Vous êtes déja inscrit à cette session privée !");
+                    }
+                    else{
+                        // Si le client n'est pas déja inscrit, on l'inscrit et on lui ajoute 4.99 EUR à son solde
+                        generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + userChoice + ")");
+                        ResultSet val = generalStat.executeQuery("SELECT solde FROM proj.client WHERE id = " + idUser);
+                        val.next();
+                        double solde = val.getDouble(1) + 4.99;
+                        val.close();
+                        generalStat.execute("UPDATE proj.client SET solde = "+ solde +" WHERE id = " + idUser);
+                        System.out.println("Vous avez bien été inscrit à cette session!");
+                        System.out.println("Votre solde viens d'augmenter de 4.99 EUR!");
+                        System.out.println("Si vous prenez plusieurs sessions privées, réflechissez à prendre un abonnement de plus haut niveau! ");
+
+                    }
                 }else{
                     System.out.println("Numéro de session non reconnu, veuillez réessayer ultérieurement");
                 }
@@ -248,4 +277,3 @@ public class partieClient{
         generalStat.close();
     }
 }
-
