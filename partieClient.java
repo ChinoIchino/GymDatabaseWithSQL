@@ -39,7 +39,7 @@ public class partieClient{
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
+                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
             );
         }
 
@@ -66,7 +66,7 @@ public class partieClient{
         }while(choixAbonnement < 1 || choixAbonnement > 3);
 
         PreparedStatement addToTable = con.prepareStatement(
-            "INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer) VALUES ((SELECT COUNT(*) + 1 FROM proj.client), ?, ?, ?, ?, ?)"
+            "INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer, solde) VALUES ((SELECT COUNT(*) + 1 FROM proj.client), ?, ?, ?, ?, ?, ?)"
         );
 
         addToTable.setString(1, nom);
@@ -99,6 +99,7 @@ public class partieClient{
             addToTable.setNull(5, java.sql.Types.INTEGER);
         }
 
+        addToTable.setDouble(6, 0);
 
         LocalDate temp = LocalDate.now().plusDays(30);
         Date newDate = Date.valueOf(temp);
@@ -124,7 +125,7 @@ public class partieClient{
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
+                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
             );
         }
 
@@ -132,8 +133,9 @@ public class partieClient{
         int aboType = resInscriptionType.getInt(2);
         resInscriptionType.close();
 
+        
         //peut s'inscrire à une session privée
-        if(aboType >= 2){
+        if(aboType >= 3){
             ResultSet allPossibleSessions = generalStat.executeQuery(
                 "SELECT c.nom, c.prenom, dateDebut, dureeEnMin FROM proj.sessionPrivee sp INNER JOIN proj.coach c On sp.coachAttitrer = c.id"
             );
@@ -156,9 +158,41 @@ public class partieClient{
                 System.out.println("Numéro de session non reconnu, veuillez réessayer ultérieurement");
             }
         }else{
-            System.out.println("Malheuresement, vous ne possédez pas l'abonnement nécessaire pour pouvoir souscrire à une session privée");
+            System.out.println("Malheuresement, vous ne possédez pas l'abonnement nécessaire pour pouvoir souscrire à une session privée."
+                                +"\nCependant vous pouvez participer à une session privée à condition que vous payer un supplément de 4.99 EUR."
+            );
+            
+            int rep;
+            do{
+                System.out.println("\nSouhaitez-vous accepter cette offre ? (1 = OUI, 0 = NON) : ");
+                rep = scanner.nextInt();
+            }while(rep != 0 && rep != 1);
+            
+            if(rep == 1){
+                ResultSet val = generalStat.executeQuery("SELECT solde FROM proj.client WHERE id = " + idUser);
+                val.next();
+                double solde = val.getDouble(1) + 4.99;
+                val.close();
+                generalStat.execute("UPDATE proj.client SET solde = "+ solde +" WHERE id = " + idUser);
+                ResultSet choice = generalStat.executeQuery("SELECT c.nom, c.prenom, dateDebut, dureeEnMin FROM proj.sessionPrivee sp INNER JOIN proj.coach c On sp.coachAttitrer = c.id");
+                System.out.println();
+            
+                int count = 1;
+                while(choice.next()){
+                    System.out.println(
+                        count++ + " : Session du " + choice.getString(3) + " / durée : " + choice.getInt(4) 
+                        + "min / avec " + choice.getString(1) + " " + choice.getString(2)
+                    );
+                }
+                choice.close();
+                int userChoice = scanner.nextInt(); 
+                if(userChoice > 0 && userChoice < count){
+                    generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + userChoice + ")");
+                }else{
+                    System.out.println("Numéro de session non reconnu, veuillez réessayer ultérieurement");
+                }
+            }
         }
-
         generalStat.close();
     }
 
@@ -176,7 +210,7 @@ public class partieClient{
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nInsciption.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
+                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
             );
         }
 
@@ -198,6 +232,7 @@ public class partieClient{
             //redemande la valeur tant qu'elle n'est pas adequate
             do{
                 choice = scanner.nextInt();
+                System.out.println("\nGot the choice = " + choice);
             }while(choice < 1 || choice > count);
 
             if(choice == count){
@@ -213,5 +248,4 @@ public class partieClient{
         generalStat.close();
     }
 }
-
 
