@@ -169,7 +169,7 @@ public class InitDatabase{
 
         addToTable.setInt(1, idCount++);
         addToTable.setString(2, "Tamby");
-        addToTable.setString(3, "Sébastien");
+        addToTable.setString(3, "Sebastien");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
         addToTable.setInt(6, 1);
@@ -439,3 +439,4 @@ public class InitDatabase{
     }
 
 }
+
