@@ -8,7 +8,7 @@ public class partieClient{
         do{
             System.out.println(
                 "\n|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
-                + "4. Date d'abonnement expirer\n5. Quitter\n"
+                + "4. Validité de l'abonnement\n5. Quitter\n"
                 );
             choiceOfInscription = scanner.nextInt();
 
@@ -277,3 +277,4 @@ public class partieClient{
         generalStat.close();
     }
 }
+
