@@ -159,11 +159,11 @@ public class InitDatabase{
     private static void initClient(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute(
-            "CREATE TABLE proj.client (id INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, typeAbonnement INTEGER REFERENCES proj.abonnement(id), finAbonnement DATE, coachAttitrer INTEGER REFERENCES proj.coach(id));"
+            "CREATE TABLE proj.client (id INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, typeAbonnement INTEGER REFERENCES proj.abonnement(id), finAbonnement DATE, coachAttitrer INTEGER REFERENCES proj.coach(id), solde DECIMAL);"
         );
         statTableCreation.close();
 
-        PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer) VALUES (?, ?, ?, ?, ?, ?)");
+        PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer, solde) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
         int idCount = 1;
 
@@ -173,6 +173,7 @@ public class InitDatabase{
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
         addToTable.setInt(6, 1);
+        addToTable.setDouble(7,0);
 
         addToTable.executeUpdate();
 
