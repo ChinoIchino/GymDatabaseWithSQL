@@ -8,7 +8,7 @@ public class partieClient{
         do{
             System.out.println(
                 "\n|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
-                + "4. Validité de l'abonnement\n5. Quitter\n"
+                + "4. Changer l'abonnement actuel\n5. Date d'abonnement expirer\n6. Quitter\n"
                 );
             choiceOfInscription = scanner.nextInt();
 
@@ -19,9 +19,70 @@ public class partieClient{
             }else if(choiceOfInscription == 3){
                 changerCoach(con, scanner);
             }else if(choiceOfInscription == 4){
+                changerAbo(con, scanner);
+            }else if(choiceOfInscription == 5){
                 peutEntrer(con, scanner);
             }
-        }while(choiceOfInscription != 5);
+        }while(choiceOfInscription != 6);
+    }
+
+    private static void changerAbo(Connection con, Scanner scanner) throws Exception{
+        System.out.println("Nom : ");
+        String nom = scanner.next();
+
+        System.out.println("Prénom : ");
+        String prenom = scanner.next();
+
+        Statement generalStat = con.createStatement();
+        ResultSet resTypeAbo = generalStat.executeQuery("SELECT typeAbonnement FROM proj.client WHERE prenom ILIKE \'" + prenom + "\' AND nom ILIKE \'" + nom + "\'");
+
+        boolean isFound = resTypeAbo.next();
+
+        if(isFound == false){
+            throw new SQLSyntaxErrorException(
+                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
+            );
+        }
+
+        String[] allAbo = {"Pas abonnée", "Basic", "Premium", "Premium+"}; 
+        double[] allPrice = {0, 19.99, 29.99, 39.99};
+        
+        int typeAbo = resTypeAbo.getInt(1);
+        resTypeAbo.close();
+
+        int count = 1;
+        System.out.println("Vous avez actuellement l'abonnement : " + allAbo[typeAbo - 1] + "\nVous avez le choix parmis :");
+        for(int i = 0; i < 4; i++){
+            // Condition qui evite qu'on affiche l'abonnement que le client possede actuellement
+            if(i != (typeAbo - 1)){
+                System.out.println(count++ + " : " + allAbo[i] + " au prix de : " + allPrice[i] + "eur");
+            }
+        }
+        System.out.println("4. Choisir une autre fois");
+        
+        int choice;
+        do{
+            System.out.println("\nQuel est votre choix : (Attention la modification aura lieu immediatement, et la facturation sera ajouter dans les redevance du mois)");
+            choice = scanner.nextInt();
+        }while(choice < 1 || choice > 4);
+        
+        // L'utilisateur veut changer d'abonnement
+        if(choice < 4){
+            ResultSet val = generalStat.executeQuery("SELECT solde FROM proj.client WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
+            val.next();
+            double newSolde = val.getDouble(1) + allPrice[choice - 1];
+            val.close();
+
+            LocalDate localDate = LocalDate.now().plusDays(30);
+            Date newDate = Date.valueOf(localDate);
+
+            generalStat.execute(
+                "UPDATE proj.client SET solde = " + newSolde + ", typeAbonnement = " + (choice + 1) + ", finAbonnement = \'" + newDate
+                + "\' WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'"
+            );
+        }
+
+        generalStat.close();
     }
 
     private static void peutEntrer(Connection con, Scanner scanner) throws Exception{
@@ -277,4 +338,5 @@ public class partieClient{
         generalStat.close();
     }
 }
+
 
