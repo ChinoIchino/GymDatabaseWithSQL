@@ -15,6 +15,8 @@ public class InitDatabase{
         initCoach(con);
         // Il faut forcément initialiser d'abord les abonnements et les coachs avant les clients, car les clients utilisent des clés étrangères vers abonnement et coach
         initClient(con);
+        // InitAbonnementTemp doit passer apres client et abonnement
+        initAbonnementTemp(con);
         // InitSessiobPrivee dois passer après Coach
         initSessionPrivee(con);
         // Table associative entre les sessions privées et les clients. Relation n-n, car un client peut avoir plusieurs sessions privées, et une session privée peut avoir plusieurs clients inscrits
@@ -155,6 +157,18 @@ public class InitDatabase{
         addToTable.executeUpdate();
         
         addToTable.close();
+    }
+    private static void initAbonnementTemp(Connection con) throws Exception{
+        Statement statTableCreation = con.createStatement();
+        statTableCreation.execute(
+            "CREATE TABLE proj.abonnementTemp (id INTEGER PRIMARY KEY, typeAbonnement INTEGER REFERENCES proj.abonnement(id), idClient INTEGER REFERENCES proj.client(id), finAbonnement DATE);"
+        );
+        statTableCreation.close();
+
+        // PreparedStatement addToTable = con.prepareStatement(
+        //     "Insert INTO proj.abonnementTemp(id, typeabonnement, clientid, date) VALUES (?, ?, ?, ?);"
+        // );
+        // TODO ajouter des valeurs test a la table abonnementTemp
     }
     private static void initClient(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
