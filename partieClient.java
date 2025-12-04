@@ -27,23 +27,7 @@ public static void main(String []args,Connection con, Scanner scanner) throws Ex
 }
 
 private static void changerAbo(Connection con, Scanner scanner) throws Exception{
-    System.out.println("Nom : ");
-    String nom = scanner.next();
-
-    System.out.println("Prénom : ");
-    String prenom = scanner.next();
-
-    Statement generalStat = con.createStatement();
-    // resTypeAbo est utiliser pour verifier si l'utilisateur existe, mais aussi on collecte toutes les informations neccessaire pour le changement d'abonnement
-    ResultSet resTypeAbo = generalStat.executeQuery("SELECT id, typeAbonnement, solde FROM proj.client WHERE prenom ILIKE \'" + prenom + "\' AND nom ILIKE \'" + nom + "\'");
-
-    boolean isFound = resTypeAbo.next();
-
-    if(isFound == false){
-        throw new SQLSyntaxErrorException(
-            "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
-        );
-    }
+    int userId = clientExiste(con, scanner);
 
     int choiceTypeAbo;
     do{
@@ -52,9 +36,15 @@ private static void changerAbo(Connection con, Scanner scanner) throws Exception
     }while(choiceTypeAbo < 1 && choiceTypeAbo > 2);
 
     // Partie "general" entre les deux possibilité
-    int userId = resTypeAbo.getInt(1);
-    int currAbo = resTypeAbo.getInt(2);
-    double currSolde = resTypeAbo.getDouble(3);
+    Statement generalStat = con.createStatement();
+    ResultSet resUserInfo = generalStat.executeQuery("SELECT typeAbonnement, solde FROM proj.client WHERE id = " + userId);
+    resUserInfo.next();
+
+    int currAbo = resUserInfo.getInt(1);
+    double currSolde = resUserInfo.getDouble(2);
+
+    // On n'a plus besoin de resTypeAbo, car toutes les attributs recuperer on etait sauvegarder dans des variables
+    resUserInfo.close();
 
     //abo mensuel
     if(choiceTypeAbo == 1){
@@ -79,9 +69,6 @@ private static void changerAbo(Connection con, Scanner scanner) throws Exception
 
         // L'utilisateur a choisis un nouveau abonnement
         if(choiceNewAbo < 4){
-            // On n'a plus besoin de resTypeAbo, car toutes les attributs recuperer on etait sauvegarder dans des variables
-            resTypeAbo.close();
-
             // On donne une valeur d'expiration a l'abonnement par rapport au moment de la modification + 30 jour
             LocalDate localDate = LocalDate.now().plusDays(30);
             Date newDate = Date.valueOf(localDate);
@@ -135,69 +122,17 @@ private static void changerAbo(Connection con, Scanner scanner) throws Exception
         }
     }
 }
+
 private static void peutEntrer(Connection con, Scanner scanner) throws Exception{
-        System.out.println("Nom : ");
-        String nom = scanner.next();
+        int userId = clientExiste(con, scanner);
 
-
-        System.out.println("Prénom : ");
-        String prenom = scanner.next();
-
-        Statement generalStat = con.createStatement();
-        // Prend seulement l'id pour verifier si l'utilisateur avec les donnes entrer existe
-        ResultSet resIdUser = generalStat.executeQuery("SELECT id FROM proj.client WHERE prenom ILIKE \'" + prenom + "\' AND nom ILIKE \'" + nom + "\'");
-
-        boolean isFound = resIdUser.next();
-
-        if(isFound == false){
-            throw new IllegalArgumentException(
-                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
-            );
-        }
-
-        int userId = resIdUser.getInt(1);
-        resIdUser.close();
-        // Recolte l'abonnement mensuel de l'utilisateur si il n'est pas expirer 
-        ResultSet resTypeAbo = generalStat.executeQuery(
-            "SELECT typeAbonnement From proj.client WHERE id =" + userId + " AND finAbonnement > CURRENT_DATE"
-        );
-        // Recolte tout les abonnements temporaire de l'utilisateur qui n'ont pas expirer
-        Statement secondGeneralStat = con.createStatement();
-        ResultSet resTypeAbotemp = secondGeneralStat.executeQuery(
-            "SELECT typeAbonnement FROM proj.abonnementTemp WHERE idClient = " + userId + " AND finAbonnement > CURRENT_DATE"
-        );
-
-        // Passe avec 2 boucles tant que par toutes les reponse donner par resTypeAbo et resTypeAboTemp
-        // J'ai mis resTypeAbo dans une boucle aussi alors qu'il a forcement au maximum une seul valeur, pour eviter de devoir passer par des boolean de verification
-        boolean aboValid = false;
-        while(resTypeAbo.next()){
-            if(resTypeAbo.getInt(1) > 1){
-                aboValid = true;
-            }
-        }
-        // Si l'abonnement "principal" n'est pas adequat, on verifie les abonnements temporaire
-        if(aboValid == false){
-            while(resTypeAbotemp.next()){
-                if(resTypeAbotemp.getInt(1) > 1){
-                    aboValid = true;
-                }
-            }
-        }
-
-        resTypeAbo.close();
-        resTypeAbotemp.close();
-        secondGeneralStat.close();
-        generalStat.close();
-
-        if(aboValid){
-            System.out.println("Le client " + nom + " " + prenom + " peut entrer dans la salle");
+        if(aAbonnementAdequat(con, userId, 2)){
+            System.out.println("Vous avez l'abonnement adequat pour entrer dans la salle de sport");
         }else{
-            System.out.println("Le client " + nom + " " + prenom + " ne peut pas entrer dans la salle");
+            System.out.println("Vous n'avez pas l'abonnement adequat pour entrer dans la salle de sport");
         }
     }
 
-    // TODO Ajouter le nouveau moyen de verification d'abonnement que dans la fonction "peutEntrer"
-    // TODO a mettre encore dans les fonctions: inscriptionMusculation, inscriptionSessionPrivee, changerCoach
     private static void inscriptionMusculation(Connection con, Scanner scanner) throws Exception{
         System.out.println("Nom : ");
         String nom = scanner.next();
@@ -257,31 +192,12 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
     }
 
     private static void inscriptionSessionPrivee(Connection con, Scanner scanner) throws Exception{
-        System.out.println("Nom : ");
-        String nom = scanner.next();
-
-        System.out.println("Prenom : ");
-        String prenom = scanner.next();
-
         Statement generalStat = con.createStatement();
-        ResultSet resInscriptionType = generalStat.executeQuery("SELECT id, typeAbonnement FROM proj.client WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
-
-        //vérification s'il existe des données sur la personne entrée, si resInscriptionType.next() n'a pas de valeur, il va nous renvoyer false
-        boolean isFound = resInscriptionType.next();
-
-        if(isFound == false){
-            throw new IllegalArgumentException(
-                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
-            );
-        }
-
-        int idUser = resInscriptionType.getInt(1);
-        int aboType = resInscriptionType.getInt(2);
-        resInscriptionType.close();
-
         
-        //peut s'inscrire à une session privée
-        if(aboType >= 3){
+        int userId = clientExiste(con, scanner);
+
+        // Si il peut s'inscrire à une session privée
+        if(aAbonnementAdequat(con, userId, 2)){
             ResultSet allPossibleSessions = generalStat.executeQuery(
                 "SELECT c.nom, c.prenom, dateDebut, dureeEnMin FROM proj.sessionPrivee sp INNER JOIN proj.coach c On sp.coachAttitrer = c.id"
             );
@@ -300,17 +216,17 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
             int choiceOfSession = scanner.nextInt(); 
             if(choiceOfSession > 0 && choiceOfSession < count){
                 // Vérification pour savoir si le client est déja inscrit à la session
-                ResultSet checkAlreadyRegistred = generalStat.executeQuery("SELECT COUNT(*) FROM proj.client_sessionPrivee WHERE idClient = "+ idUser +" AND idSessionPrivee = "+ choiceOfSession);
-                checkAlreadyRegistred.next();
-                int countAlreadyRegistered = checkAlreadyRegistred.getInt(1);
-                checkAlreadyRegistred.close();
+                ResultSet checkAlreadyRegistered = generalStat.executeQuery("SELECT COUNT(*) FROM proj.client_sessionPrivee WHERE idClient = "+ userId +" AND idSessionPrivee = "+ choiceOfSession);
+                checkAlreadyRegistered.next();
+                int countAlreadyRegistered = checkAlreadyRegistered.getInt(1);
+                checkAlreadyRegistered.close();
 
                 if(countAlreadyRegistered > 0){
                     System.out.println("Vous êtes déja inscrit à cette session privée !");
                 }
                 else{
                     // Si le client n'est pas déja inscrit, on l'inscrit
-                    generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + choiceOfSession + ")");
+                    generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + userId + ", " + choiceOfSession + ")");
                     System.out.println("Vous avez bien été inscrit à cette session!");
                 }
             }else{
@@ -342,7 +258,7 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
                 int userChoice = scanner.nextInt(); 
                 if(userChoice > 0 && userChoice < count){
                     // Vérification si le client à déjà été inscrit à une session
-                    ResultSet AlreadyRegistred = generalStat.executeQuery("SELECT COUNT(*) FROM proj.client_sessionPrivee WHERE idClient = "+ idUser+" AND idSessionPrivee = "+ userChoice);
+                    ResultSet AlreadyRegistred = generalStat.executeQuery("SELECT COUNT(*) FROM proj.client_sessionPrivee WHERE idClient = "+ userId+" AND idSessionPrivee = "+ userChoice);
                     AlreadyRegistred.next();
                     int ifAlreadyRegistred = AlreadyRegistred.getInt(1);
                     AlreadyRegistred.close();
@@ -352,16 +268,16 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
                     }
                     else{
                         // Si le client n'est pas déja inscrit, on l'inscrit et on lui ajoute 4.99 EUR à son solde
-                        generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + idUser + ", " + userChoice + ")");
-                        ResultSet val = generalStat.executeQuery("SELECT solde FROM proj.client WHERE id = " + idUser);
+                        generalStat.execute("INSERT INTO proj.client_sessionPrivee(idClient, idSessionPrivee) VALUES (" + userId + ", " + userChoice + ")");
+                        ResultSet val = generalStat.executeQuery("SELECT solde FROM proj.client WHERE id = " + userId);
                         val.next();
                         double solde = val.getDouble(1) + 4.99;
                         val.close();
-                        generalStat.execute("UPDATE proj.client SET solde = "+ solde +" WHERE id = " + idUser);
-                        System.out.println("Vous avez bien été inscrit à cette session!");
-                        System.out.println("Votre solde viens d'augmenter de 4.99 EUR!");
-                        System.out.println("Si vous prenez plusieurs sessions privées, réflechissez à prendre un abonnement de plus haut niveau! ");
-
+                        generalStat.execute("UPDATE proj.client SET solde = "+ solde +" WHERE id = " + userId);
+                        System.out.println(
+                            "Vous avez bien été inscrit à cette session!\nVotre solde viens d'augmenter de 4.99 EUR!" 
+                            + "\nSi vous prenez plusieurs sessions privées, réflechissez à prendre un abonnement de plus haut niveau!"
+                        );
                     }
                 }else{
                     System.out.println("Numéro de session non reconnu, veuillez réessayer ultérieurement");
@@ -372,26 +288,11 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
     }
 
     private static void changerCoach(Connection con, Scanner scanner) throws Exception{
-        System.out.println("Nom : ");
-        String nom = scanner.next();
+        int userId = clientExiste(con, scanner);
 
-        System.out.println("Prenom : ");
-        String prenom = scanner.next();
+        if(aAbonnementAdequat(con, userId, 4)){
+            Statement generalStat = con.createStatement();
 
-        Statement generalStat = con.createStatement();
-        ResultSet resTypeAbo = generalStat.executeQuery("SELECT typeAbonnement FROM proj.client WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
-
-        boolean isFound = resTypeAbo.next();
-
-        if(isFound == false){
-            throw new IllegalArgumentException(
-                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
-            );
-        }
-
-        int typeAbo = resTypeAbo.getInt(1);
-
-        if(typeAbo == 4){
             System.out.println("\nListe de tout les coachs : ");
 
             ResultSet allCoach = generalStat.executeQuery("SELECT nom, prenom FROM proj.coach ORDER BY id");
@@ -404,22 +305,105 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
             allCoach.close();
 
             int choice;
-            //redemande la valeur tant qu'elle n'est pas adequate
+            // Redemande la valeur tant qu'elle n'est pas adequate
             do{
                 choice = scanner.nextInt();
                 System.out.println("\nGot the choice = " + choice);
             }while(choice < 1 || choice > count);
 
+            // Si l'utilisateur a choisie l'option "retirer coach"
             if(choice == count){
-                //UPDATE proj.machine SET prochMaintenance = \'" + newDate + "\' WHERE id = " + idMachine
-                generalStat.execute("UPDATE proj.client SET coachAttitrer = NULL WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
+                generalStat.execute("UPDATE proj.client SET coachAttitrer = NULL WHERE id = " + userId);
             }else{
-                generalStat.execute("UPDATE proj.client SET coachAttitrer = " + choice + " WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
+                generalStat.execute("UPDATE proj.client SET coachAttitrer = " + choice + " WHERE id = " + userId);
             }
+
+            generalStat.close();
         }else{
             System.out.println("Malheuresement, vous ne possédez pas l'abonnement nécessaire pour pouvoir souscrire à un coach");
         }
+    }
 
+
+    //Util.
+    // Verifie si l'utilisateur existe, si c'est le cas cela nous r'envoie son id. Sinon la fonction envoie une exception/erreur
+    private static int clientExiste(Connection con, Scanner scanner) throws Exception{
+        System.out.println("Nom : ");
+        String nom = scanner.next();
+
+        System.out.println("Prenom : ");
+        String prenom = scanner.next();
+
+        Statement generalStat = con.createStatement();
+        ResultSet resUserId = generalStat.executeQuery("SELECT id FROM proj.client WHERE nom ILIKE \'" + nom + "\' AND prenom ILIKE \'" + prenom + "\'");
+
+        boolean isFound = resUserId.next();
+
+        if(isFound == false){
+            throw new IllegalArgumentException(
+                "\npartieClient.java ERREUR: Le client avec le nom : " + nom + " " + prenom + " n'a pas été trouvé. Veuillez vérifier si les données on été écrites correctement."
+            );
+        }
+
+        // On ne retourne pas directement l'id, car on a besoin de fermer le "Statment generalStat" et le "ResultSet resUserId" avant
+        int userId = resUserId.getInt(1);
+        
+        resUserId.close();
         generalStat.close();
+
+        return userId;
+    }
+
+    // Seulement utilisable lors ce que l'utilisateur a etait confirmer dans la base de données !!
+    // Car cette fonctions n'a pas de verification d'erreur
+    private static boolean aAbonnementAdequat(Connection con, int userId, int idAboReq) throws Exception{
+        Statement generalStat = con.createStatement();
+
+        //TODO Les informations ne sont pas collecter correctement, resultSet ne recois pas ce qu'il faut
+        // Recolte l'abonnement mensuel de l'utilisateur si il n'est pas expirer 
+        ResultSet resTypeAbo = generalStat.executeQuery(
+            "SELECT typeAbonnement From proj.client WHERE id =" + userId + " AND finAbonnement >= CURRENT_DATE"
+        );
+        // Recolte tout les abonnements temporaire de l'utilisateur qui n'ont pas expirer
+        Statement secondGeneralStat = con.createStatement();
+        ResultSet resTypeAbotemp = secondGeneralStat.executeQuery(
+            "SELECT typeAbonnement FROM proj.abonnementTemp WHERE idClient = " + userId + " AND finAbonnement >= CURRENT_DATE"
+        );
+
+        // Passe avec 2 boucles tant que par toutes les reponse donner par resTypeAbo et resTypeAboTemp
+        // J'ai mis resTypeAbo dans une boucle aussi alors qu'il a forcement au maximum une seul valeur, pour eviter de devoir passer par des booléen de verification
+        while(resTypeAbo.next()){
+            System.out.println("On a le type dans mensuel = " + resTypeAbo.getInt(1));
+            if(resTypeAbo.getInt(1) >= idAboReq){
+                // Si trouver, ferme toutes les demandes et r'envoie vrai
+                resTypeAbo.close();
+                resTypeAbotemp.close();
+                secondGeneralStat.close();
+                generalStat.close();
+
+                return true;
+            }
+        }
+        // Si l'abonnement "principal" n'est pas adequat, on verifie les abonnements temporaire
+        while(resTypeAbotemp.next()){
+            // Si trouver, ferme toutes les demandes et r'envoie vrai
+            System.out.println("On a le type dans journalier = " + resTypeAbotemp.getInt(1));
+            if(resTypeAbotemp.getInt(1) >= idAboReq){
+                resTypeAbo.close();
+                resTypeAbotemp.close();
+                secondGeneralStat.close();
+                generalStat.close();
+
+                return true;
+            }
+        }
+
+        resTypeAbo.close();
+        resTypeAbotemp.close();
+        secondGeneralStat.close();
+        generalStat.close();
+
+        return false;
     }
 }
+
