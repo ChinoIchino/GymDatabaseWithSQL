@@ -8,7 +8,7 @@ public static void main(String []args,Connection con, Scanner scanner) throws Ex
     do{
         System.out.println(
             "\n|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
-            + "4. Changer l'abonnement actuel\n5. Date d'abonnement expirer\n6. Quitter\n"
+            + "4. Changer l'abonnement actuel\n5. Statut de l'abonnement\n6. Quitter\n"
         );
         choiceOfInscription = scanner.nextInt();
 
@@ -354,7 +354,7 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         return userId;
     }
 
-    // Seulement utilisable lors ce que l'utilisateur a etait confirmer dans la base de données !!
+    // Seulement utilisable lors ce que l'utilisateur a été confirmer dans la base de données !!!
     // Car cette fonctions n'a pas de verification d'erreur
     private static boolean aAbonnementAdequat(Connection con, int userId, int idAboReq) throws Exception{
         Statement generalStat = con.createStatement();
@@ -373,7 +373,10 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         // Passe avec 2 boucles tant que par toutes les reponse donner par resTypeAbo et resTypeAboTemp
         // J'ai mis resTypeAbo dans une boucle aussi alors qu'il a forcement au maximum une seul valeur, pour eviter de devoir passer par des booléen de verification
         while(resTypeAbo.next()){
-            System.out.println("On a le type dans mensuel = " + resTypeAbo.getInt(1));
+            int curAbo = resTypeAbo.getInt(1);
+            String[] allSub = {"Pas abonnée", "Basic", "Premium", "Premium+"};
+            double[] allPri = {0, 19.99, 29.99, 39.99};
+            System.out.println("Le client à le statut mensuel suivant : " + allSub[curAbo-1]+ " à " + allPri[curAbo-1] + " EUR.");
             if(resTypeAbo.getInt(1) >= idAboReq){
                 // Si trouver, ferme toutes les demandes et r'envoie vrai
                 resTypeAbo.close();
@@ -406,4 +409,3 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         return false;
     }
 }
-
