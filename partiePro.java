@@ -32,7 +32,7 @@ public class partiePro {
 
         if(isFound == false){
             throw new IllegalArgumentException(
-                "\nWorkerPart.java ERREUR: La machine avec l'id : " + idMachine + " n'a pas été trouvée. Veuillez verifier si l'id de la machine est correct."
+                "\nWorkerPart.java ERREUR: La machine avec l'id : " + idMachine + " n'a pas été trouvée. Veuillez vérifier si l'id de la machine est correct."
             );
         }
 
@@ -76,4 +76,5 @@ public class partiePro {
         }
     }
 }
+
 
