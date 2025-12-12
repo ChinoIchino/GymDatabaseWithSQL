@@ -1,4 +1,3 @@
-import java.nio.file.AccessDeniedException;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -40,7 +39,8 @@ class App{
 
         int choice = 0;
         while(choice != 3){
-            System.out.println("\n//////////////////////////////////////////////\nQuel menu a ouvrir: \n1. Menu Client\n2. Menu Professionnelle\n3. Quitter\n");
+            System.out.println("\n----------------Menu Principal----------------\nQuel menu a ouvrir: \n1. Menu Client\n2. Menu Professionnel\n3. Quitter"
+                                +"\n----------------Menu Principal----------------\n");
             choice = scanner.nextInt();
             
             if(choice == 1){

@@ -3,127 +3,129 @@ import java.time.LocalDate;
 import java.util.Scanner;
 
 public class partieClient{
-public static void main(String []args,Connection con, Scanner scanner) throws Exception{
-    int choiceOfInscription;
-    do{
-        System.out.println(
-            "\n|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|/|\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
-            + "4. Changer l'abonnement actuel\n5. Statut de l'abonnement\n6. Quitter\n"
-        );
-        choiceOfInscription = scanner.nextInt();
-
-        if(choiceOfInscription == 1){
-            inscriptionMusculation(con, scanner);
-        }else if(choiceOfInscription == 2){
-            inscriptionSessionPrivee(con, scanner);
-        }else if(choiceOfInscription == 3){
-            changerCoach(con, scanner);
-        }else if(choiceOfInscription == 4){
-            changerAbo(con, scanner);
-        }else if(choiceOfInscription == 5){
-            peutEntrer(con, scanner);
-        }
-    }while(choiceOfInscription != 6);
-}
-
-private static void changerAbo(Connection con, Scanner scanner) throws Exception{
-    int userId = clientExiste(con, scanner);
-
-    int choiceTypeAbo;
-    do{
-        System.out.println("\n1.Abonnement Mensuel\n2.Abonnement Journalier");
-        choiceTypeAbo = scanner.nextInt();
-    }while(choiceTypeAbo < 1 && choiceTypeAbo > 2);
-
-    // Partie "general" entre les deux possibilité
-    Statement generalStat = con.createStatement();
-    ResultSet resUserInfo = generalStat.executeQuery("SELECT typeAbonnement, solde FROM proj.client WHERE id = " + userId);
-    resUserInfo.next();
-
-    int currAbo = resUserInfo.getInt(1);
-    double currSolde = resUserInfo.getDouble(2);
-
-    // On n'a plus besoin de resTypeAbo, car toutes les attributs recuperer on etait sauvegarder dans des variables
-    resUserInfo.close();
-
-    //abo mensuel
-    if(choiceTypeAbo == 1){
-        //TODO Verifier si un utilisateur passe de premium+ a autre, il faut effacer le coachAttitrer de ces attributs
-        String[] allAbo = {"Pas abonnée", "Basic", "Premium", "Premium+"};
-        double[] allPrice = {0, 19.99, 29.99, 39.99};
-        String[] possibleChoices = new String[3];
-        int count = 1;
-        for(int i = 0; i < 4; i++){
-            if(i != (currAbo - 1)){
-                System.out.println(count + " : " + allAbo[i] + " au prix de " + allPrice[i] + "eur");
-                possibleChoices[(count - 1)] = allAbo[i];
-                count++;
-            }
-        }
-        System.out.println("4. Choisir une autre fois");
-
-        int choiceNewAbo;
+    public static void main(String []args,Connection con, Scanner scanner) throws Exception{
+        int choiceOfInscription;
         do{
-            choiceNewAbo = scanner.nextInt();
-        }while(choiceNewAbo < 1 && choiceNewAbo > 4);
-
-        // L'utilisateur a choisis un nouveau abonnement
-        if(choiceNewAbo < 4){
-            // On donne une valeur d'expiration a l'abonnement par rapport au moment de la modification + 30 jour
-            LocalDate localDate = LocalDate.now().plusDays(30);
-            Date newDate = Date.valueOf(localDate);
-
-            ResultSet resNewTypeAbo = generalStat.executeQuery("SELECT id FROM proj.abonnement WHERE nom ILIKE \'" + possibleChoices[choiceNewAbo - 1] + "\'");
-            resNewTypeAbo.next();
-            generalStat.execute(
-                "UPDATE proj.client SET typeAbonnement = " + resNewTypeAbo.getInt(1) + ", finAbonnement = \'" + newDate + "\', solde = " + (currSolde + allPrice[choiceNewAbo - 1])
-                + " WHERE id = " + userId
+            System.out.println(
+                "\n----------------Menu Client----------------\n1. Inscription à la salle de musculation\n2. Inscription a une session privée\n3. Changer de coach attitrée\n"
+                + "4. Changer l'abonnement actuel\n5. Date d'abonnement expirer\n6. Quitter\n----------------Menu Client----------------"
             );
-        }
-    }else{
-        String[] allAbo = {"Basic", "Premium", "Premium+"};
-        double[] allPrice = {4.99, 7.99, 9.99};
+            choiceOfInscription = scanner.nextInt();
 
-        int count = 1;
-        for(int i = 0; i < 3; i++){
-            // + 2, car les attributs abonnement commence a partir de 2 jusqu'a 4 (2 = Basic, 3 = Premium, 4 = Premium+)
-            if((i + 2) > currAbo){
-                System.out.println(count++ + " : " + allAbo[i] + " au prix de " + allPrice[i] + "eur pour la journée");
+            if(choiceOfInscription == 1){
+                inscriptionMusculation(con, scanner);
+            }else if(choiceOfInscription == 2){
+                inscriptionSessionPrivee(con, scanner);
+            }else if(choiceOfInscription == 3){
+                changerCoach(con, scanner);
+            }else if(choiceOfInscription == 4){
+                changerAbo(con, scanner);
+            }else if(choiceOfInscription == 5){
+                peutEntrer(con, scanner);
             }
-        }
-        System.out.println(count + " : Choisir une autre fois");
+        }while(choiceOfInscription != 6);
+    }
 
-        int choiceTempAbo;
+    private static void changerAbo(Connection con, Scanner scanner) throws Exception{
+        int userId = clientExiste(con, scanner);
+
+        int choiceTypeAbo;
         do{
-            choiceTempAbo = scanner.nextInt();
-        }while(choiceTempAbo < 1 && choiceTempAbo > count);
+            System.out.println("\n1.Abonnement Mensuel\n2.Abonnement Journalier");
+            choiceTypeAbo = scanner.nextInt();
+        }while(choiceTypeAbo < 1 && choiceTypeAbo > 2);
 
-        // L'utilisateur a choisis une option
-        if(choiceTempAbo < count){
-            // Prepare l'insertion d'un nouveau objet dans la table des abonnements temporaire
-            PreparedStatement addToTable = con.prepareStatement(
-                "INSERT INTO proj.abonnementTemp(id, idClient, typeAbonnement, finAbonnement) VALUES ((SELECT COUNT(*) + 1 FROM proj.abonnementTemp), ?, ?, ?);"
-            );
+        // Partie "general" entre les deux possibilité
+        Statement generalStat = con.createStatement();
+        ResultSet resUserInfo = generalStat.executeQuery("SELECT typeAbonnement, solde FROM proj.client WHERE id = " + userId);
+        resUserInfo.next();
 
-            LocalDate localDate = LocalDate.now().plusDays(1);
-            Date newDate = Date.valueOf(localDate);
+        int currAbo = resUserInfo.getInt(1);
+        double currSolde = resUserInfo.getDouble(2);
 
-            // Insere les valeurs dans la futur requete sql
-            addToTable.setInt(1, userId);
-            // Prend l'abonnement par rapport a l'abonnement actuel + le choix de l'utilisateur
-            addToTable.setInt(2, (currAbo + choiceTempAbo));
-            addToTable.setDate(3, newDate);
+        // On n'a plus besoin de resTypeAbo, car toutes les attributs recuperer on etait sauvegarder dans des variables
+        resUserInfo.close();
 
-            // Envoie la requete sql
-            addToTable.executeUpdate();
+        //abo mensuel
+        if(choiceTypeAbo == 1){
+            //TODO Verifier si un utilisateur passe de premium+ a autre, il faut effacer le coachAttitrer de ces attributs
+            String[] allAbo = {"Pas abonnée", "Basic", "Premium", "Premium+"};
+            double[] allPrice = {0, 19.99, 29.99, 39.99};
+            String[] possibleChoices = new String[3];
+            int count = 1;
+            for(int i = 0; i < 4; i++){
+                if(i != (currAbo - 1)){
+                    System.out.println(count + " : " + allAbo[i] + " au prix de " + allPrice[i] + "eur");
+                    possibleChoices[(count - 1)] = allAbo[i];
+                    count++;
+                }else{
+                    System.out.println(allAbo[i] + " : (Abonnement Actuel)");
+                }
+            }
+            System.out.println("4. Choisir une autre fois");
 
-            // Modifie les soldes de l'utilisateur qui viens d'acheter un abonnement temporaire
-            generalStat.execute("UPDATE proj.client SET solde = " + (currSolde + allPrice[choiceTempAbo - 1] + " WHERE id = " + userId));
+            int choiceNewAbo;
+            do{
+                choiceNewAbo = scanner.nextInt();
+            }while(choiceNewAbo < 1 && choiceNewAbo > 4);
+
+            // L'utilisateur a choisis un nouveau abonnement
+            if(choiceNewAbo < 4){
+                // On donne une valeur d'expiration a l'abonnement par rapport au moment de la modification + 30 jour
+                LocalDate localDate = LocalDate.now().plusDays(30);
+                Date newDate = Date.valueOf(localDate);
+
+                ResultSet resNewTypeAbo = generalStat.executeQuery("SELECT id FROM proj.abonnement WHERE nom ILIKE \'" + possibleChoices[choiceNewAbo - 1] + "\'");
+                resNewTypeAbo.next();
+                generalStat.execute(
+                    "UPDATE proj.client SET typeAbonnement = " + resNewTypeAbo.getInt(1) + ", finAbonnement = \'" + newDate + "\', solde = " + (currSolde + allPrice[choiceNewAbo - 1])
+                    + " WHERE id = " + userId
+                );
+            }
+        }else{
+            String[] allAbo = {"Basic", "Premium", "Premium+"};
+            double[] allPrice = {4.99, 7.99, 9.99};
+
+            int count = 1;
+            for(int i = 0; i < 3; i++){
+                // + 2, car les attributs abonnement commence a partir de 2 jusqu'a 4 (2 = Basic, 3 = Premium, 4 = Premium+)
+                if((i + 2) > currAbo){
+                    System.out.println(count++ + " : " + allAbo[i] + " au prix de " + allPrice[i] + "eur pour la journée");
+                }
+            }
+            System.out.println(count + " : Choisir une autre fois");
+
+            int choiceTempAbo;
+            do{
+                choiceTempAbo = scanner.nextInt();
+            }while(choiceTempAbo < 1 && choiceTempAbo > count);
+
+            // L'utilisateur a choisis une option
+            if(choiceTempAbo < count){
+                // Prepare l'insertion d'un nouveau objet dans la table des abonnements temporaire
+                PreparedStatement addToTable = con.prepareStatement(
+                    "INSERT INTO proj.abonnementTemp(id, idClient, typeAbonnement, finAbonnement) VALUES ((SELECT COUNT(*) + 1 FROM proj.abonnementTemp), ?, ?, ?);"
+                );
+
+                LocalDate localDate = LocalDate.now().plusDays(1);
+                Date newDate = Date.valueOf(localDate);
+
+                // Insere les valeurs dans la futur requete sql
+                addToTable.setInt(1, userId);
+                // Prend l'abonnement par rapport a l'abonnement actuel + le choix de l'utilisateur
+                addToTable.setInt(2, (currAbo + choiceTempAbo));
+                addToTable.setDate(3, newDate);
+
+                // Envoie la requete sql
+                addToTable.executeUpdate();
+
+                // Modifie les soldes de l'utilisateur qui viens d'acheter un abonnement temporaire
+                generalStat.execute("UPDATE proj.client SET solde = " + (currSolde + allPrice[choiceTempAbo - 1] + " WHERE id = " + userId));
+            }
         }
     }
-}
 
-private static void peutEntrer(Connection con, Scanner scanner) throws Exception{
+    private static void peutEntrer(Connection con, Scanner scanner) throws Exception{
         int userId = clientExiste(con, scanner);
 
         if(aAbonnementAdequat(con, userId, 2)){
@@ -354,12 +356,11 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         return userId;
     }
 
-    // Seulement utilisable lors ce que l'utilisateur a été confirmer dans la base de données !!!
+    // Seulement utilisable lors ce que l'utilisateur a etait confirmer dans la base de données !!
     // Car cette fonctions n'a pas de verification d'erreur
     private static boolean aAbonnementAdequat(Connection con, int userId, int idAboReq) throws Exception{
         Statement generalStat = con.createStatement();
 
-        //TODO Les informations ne sont pas collecter correctement, resultSet ne recois pas ce qu'il faut
         // Recolte l'abonnement mensuel de l'utilisateur si il n'est pas expirer 
         ResultSet resTypeAbo = generalStat.executeQuery(
             "SELECT typeAbonnement From proj.client WHERE id =" + userId + " AND finAbonnement >= CURRENT_DATE"
@@ -373,10 +374,6 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         // Passe avec 2 boucles tant que par toutes les reponse donner par resTypeAbo et resTypeAboTemp
         // J'ai mis resTypeAbo dans une boucle aussi alors qu'il a forcement au maximum une seul valeur, pour eviter de devoir passer par des booléen de verification
         while(resTypeAbo.next()){
-            int curAbo = resTypeAbo.getInt(1);
-            String[] allSub = {"Pas abonnée", "Basic", "Premium", "Premium+"};
-            double[] allPri = {0, 19.99, 29.99, 39.99};
-            System.out.println("Le client à le statut mensuel suivant : " + allSub[curAbo-1]+ " à " + allPri[curAbo-1] + " EUR.");
             if(resTypeAbo.getInt(1) >= idAboReq){
                 // Si trouver, ferme toutes les demandes et r'envoie vrai
                 resTypeAbo.close();
@@ -390,7 +387,6 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         // Si l'abonnement "principal" n'est pas adequat, on verifie les abonnements temporaire
         while(resTypeAbotemp.next()){
             // Si trouver, ferme toutes les demandes et r'envoie vrai
-            System.out.println("On a le type dans journalier = " + resTypeAbotemp.getInt(1));
             if(resTypeAbotemp.getInt(1) >= idAboReq){
                 resTypeAbo.close();
                 resTypeAbotemp.close();
@@ -409,3 +405,4 @@ private static void peutEntrer(Connection con, Scanner scanner) throws Exception
         return false;
     }
 }
+

@@ -133,7 +133,7 @@ public class InitDatabase{
         int idCount = 1;
 
         addToTable.setInt(1, idCount++);
-        addToTable.setString(2, "None");
+        addToTable.setString(2, "Pas abonnée");
         addToTable.setDouble(3, 0);
 
         addToTable.executeUpdate();
@@ -164,11 +164,6 @@ public class InitDatabase{
             "CREATE TABLE proj.abonnementTemp (id INTEGER PRIMARY KEY, typeAbonnement INTEGER REFERENCES proj.abonnement(id), idClient INTEGER REFERENCES proj.client(id), finAbonnement DATE);"
         );
         statTableCreation.close();
-
-        // PreparedStatement addToTable = con.prepareStatement(
-        //     "Insert INTO proj.abonnementTemp(id, typeabonnement, clientid, date) VALUES (?, ?, ?, ?);"
-        // );
-        // TODO ajouter des valeurs test a la table abonnementTemp
     }
     private static void initClient(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
@@ -211,7 +206,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setString(2, "Romano Castro");
+        addToTable.setString(2, "Romano");
         addToTable.setString(3, "Caio");
         addToTable.setInt(4, 3);
         addToTable.setDate(5, randomDate());
@@ -220,7 +215,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setString(2, "Pinto Da Fonseca");
+        addToTable.setString(2, "Pinto");
         addToTable.setString(3, "Sacha");
         addToTable.setInt(4, 4);
         addToTable.setDate(5, randomDate());
