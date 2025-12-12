@@ -15,6 +15,8 @@ public class InitDatabase{
         initCoach(con);
         // Il faut forcément initialiser d'abord les abonnements et les coachs avant les clients, car les clients utilisent des clés étrangères vers abonnement et coach
         initClient(con);
+        // InitAbonnementTemp doit passer apres client et abonnement
+        initAbonnementTemp(con);
         // InitSessiobPrivee dois passer après Coach
         initSessionPrivee(con);
         // Table associative entre les sessions privées et les clients. Relation n-n, car un client peut avoir plusieurs sessions privées, et une session privée peut avoir plusieurs clients inscrits
@@ -131,7 +133,7 @@ public class InitDatabase{
         int idCount = 1;
 
         addToTable.setInt(1, idCount++);
-        addToTable.setString(2, "None");
+        addToTable.setString(2, "Pas abonnée");
         addToTable.setDouble(3, 0);
 
         addToTable.executeUpdate();
@@ -156,23 +158,31 @@ public class InitDatabase{
         
         addToTable.close();
     }
+    private static void initAbonnementTemp(Connection con) throws Exception{
+        Statement statTableCreation = con.createStatement();
+        statTableCreation.execute(
+            "CREATE TABLE proj.abonnementTemp (id INTEGER PRIMARY KEY, typeAbonnement INTEGER REFERENCES proj.abonnement(id), idClient INTEGER REFERENCES proj.client(id), finAbonnement DATE);"
+        );
+        statTableCreation.close();
+    }
     private static void initClient(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute(
-            "CREATE TABLE proj.client (id INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, typeAbonnement INTEGER REFERENCES proj.abonnement(id), finAbonnement DATE, coachAttitrer INTEGER REFERENCES proj.coach(id));"
+            "CREATE TABLE proj.client (id INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, typeAbonnement INTEGER REFERENCES proj.abonnement(id), finAbonnement DATE, coachAttitrer INTEGER REFERENCES proj.coach(id), solde DECIMAL);"
         );
         statTableCreation.close();
 
-        PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer) VALUES (?, ?, ?, ?, ?, ?)");
+        PreparedStatement addToTable = con.prepareStatement("INSERT INTO proj.client(id, nom, prenom, typeAbonnement, finAbonnement, coachAttitrer, solde) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
         int idCount = 1;
 
         addToTable.setInt(1, idCount++);
         addToTable.setString(2, "Tamby");
-        addToTable.setString(3, "Sébastien");
+        addToTable.setString(3, "Sebastien");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
         addToTable.setInt(6, 1);
+        addToTable.setDouble(7,0);
 
         addToTable.executeUpdate();
 
@@ -196,7 +206,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setString(2, "Romano Castro");
+        addToTable.setString(2, "Romano");
         addToTable.setString(3, "Caio");
         addToTable.setInt(4, 3);
         addToTable.setDate(5, randomDate());
@@ -205,7 +215,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setString(2, "Pinto Da Fonseca");
+        addToTable.setString(2, "Pinto");
         addToTable.setString(3, "Sacha");
         addToTable.setInt(4, 4);
         addToTable.setDate(5, randomDate());
@@ -438,3 +448,4 @@ public class InitDatabase{
     }
 
 }
+

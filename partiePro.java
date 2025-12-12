@@ -7,12 +7,17 @@ public class partiePro {
 
         int choice;
         do{
-            System.out.println("\n|//|//|//|//|//|//|//|//|//|//|//|//|//|//|//|//|\n1. Mettre à jour la prochaine maintenance\n2. Quitter\n");
+            System.out.println("\n----------------Menu Pro----------------\n1. Mettre à jour la prochaine maintenance"
+                            + "\n2. Donner toutes les machines qui on besoin d'une maintenance dans les 30 prochain jours\n3. Quitter\n"
+                            + "----------------Menu Pro----------------"
+                            );
             choice = scanner.nextInt();
             if(choice == 1){
                 maintenance(con, scanner);
+            }else if(choice == 2){
+                maintenancesDansProch30J(con);
             }
-        }while(choice != 2);
+        }while(choice != 3);
     }
 
     private static void maintenance(Connection con, Scanner scanner) throws Exception{
@@ -45,6 +50,30 @@ public class partiePro {
         System.out.println("\nLa maintenance a bien été enregistrée.");
 
         generalStat.close();
+    }
+
+    private static void maintenancesDansProch30J(Connection con) throws Exception{
+        Statement generalStat = con.createStatement();
+
+        LocalDate localDateFilter = LocalDate.now().plusDays(30);
+        Date dateFilter = Date.valueOf(localDateFilter);
+
+        // Prends tout les machines dont la maintenance doit etre faite dans maximum 30 jours
+        ResultSet allNextMaint = generalStat.executeQuery("SELECT id, nom, prochMaintenance FROM proj.machine WHERE prochMaintenance <= \'" + dateFilter + "\'");
+
+        int currId;
+        String currName;
+        Date currProchMaint;
+
+        while(allNextMaint.next()){
+            currProchMaint = allNextMaint.getDate(3);
+
+            // Prend les valeurs de la machine courante
+            currId = allNextMaint.getInt(1);
+            currName = allNextMaint.getString(2);
+
+            System.out.println("Id = " + currId + " : " + currName + ", Derniere date pour la prochaine maintenance : " + currProchMaint);
+        }
     }
 }
 
