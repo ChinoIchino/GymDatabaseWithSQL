@@ -201,7 +201,7 @@ public class InitDatabase{
         addToTable.setString(3, "Brian");
         addToTable.setInt(4, 4);
         addToTable.setDate(5, randomDate());
-        addToTable.setInt(6, 1);
+        addToTable.setInt(6, 2);
 
         addToTable.executeUpdate();
 
@@ -229,6 +229,14 @@ public class InitDatabase{
         addToTable.setDate(5, randomDate());
         addToTable.setInt(6, 1);
 
+        addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setString(2, "Bouzaida");
+        addToTable.setString(3, "Sadok");
+        addToTable.setInt(4, 4);
+        addToTable.setDate(5, randomDate());
+        addToTable.setInt(6, 2);
         addToTable.executeUpdate();
         addToTable.close();
     }
@@ -271,14 +279,14 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setInt(2, 1);
+        addToTable.setInt(2, 2);
         addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 60);
 
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setInt(2, 1);
+        addToTable.setInt(2, 2);
         addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 60);
 
@@ -292,7 +300,7 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setInt(2, 1);
+        addToTable.setInt(2, 2);
         addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 90);
 

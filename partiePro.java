@@ -8,7 +8,7 @@ public class partiePro {
         int choice;
         do{
             System.out.println("\n----------------Menu Pro----------------\n1. Mettre à jour la prochaine maintenance"
-                            + "\n2. Donner toutes les machines qui on besoin d'une maintenance dans les 30 prochain jours\n3. Quitter\n"
+                            + "\n2. Donner toutes les machines qui ont besoin d'une maintenance dans les 30 prochains jours\n3. Quitter\n"
                             + "----------------Menu Pro----------------"
                             );
             choice = scanner.nextInt();
@@ -39,7 +39,7 @@ public class partiePro {
         int intervalDeMaintenance = resOfMachine.getInt(1);
         resOfMachine.close();
 
-        LocalDate localDate = LocalDate.now().plusDays(intervalDeMaintenance); //ajoute la valeur en jours souhaité dans la date actuelle
+        LocalDate localDate = LocalDate.now().plusDays(intervalDeMaintenance); //1joute la valeur en jours souhaitée à la date actuelle
         
         Date newDate = Date.valueOf(localDate); //reconvertit la valeur en type Date pour la requête SQL
 
@@ -76,5 +76,3 @@ public class partiePro {
         }
     }
 }
-
-

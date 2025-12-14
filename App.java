@@ -6,14 +6,14 @@ class App{
         Scanner scanner = new Scanner(System.in);
 
         Class.forName("org.postgresql.Driver");
-        Connection con = DriverManager.getConnection("jdbc:postgresql://kafka.iem/kb483753", "kb483753", "kb483753");
+        Connection con = DriverManager.getConnection("jdbc:postgresql://kafka.iem/st655935", "st655935", "st655935");
 
-        // Collecte le nom de tout les schemas de la connection dans un ResultSet
+        // Collecte le nom de tous les schémas de la connexion dans un ResultSet
         DatabaseMetaData metaDataOfDatabase = con.getMetaData();
         ResultSet stat = metaDataOfDatabase.getSchemas();
 
         boolean correctSchemaExist = false;
-        // Verifie si le schema du nom de proj existe
+        // Vérifie si le schéma nommé "proj" existe
         while(stat.next()){
             if(stat.getString(1).equals("proj")){
                 correctSchemaExist = true;
@@ -21,16 +21,16 @@ class App{
             }
         }
         
-        // Si il n'a pas été trouver, envoie une erreur associée
+        // S'il n'a pas été trouvé, envoie une erreur associée
         if(!correctSchemaExist){
-            // Je n'ai pas trouver une erreur adequate, donc j'ai mis SQLException.
-            // Il etait possible de cree sa propre erreur avec un objet qui extend SQLException, cependant je trouvais que ca aurait etait trop hors-sujet par rapport au projet
+            // Je n'ai pas trouvé d'erreur adequate, donc j'ai mis SQLException.
+            // Il était possible de crée sa propre erreur avec un objet qui étend SQLException, cependant, je trouvais que ça aurait été trop hors-sujet par rapport au projet.
             throw new SQLException(
-                "App.java Erreur: Le schema 'proj' n'a pas été trouver, verifier si vous avez sur DBeaver dans le dossier Schemas un schema du nom de 'proj'"
+                "App.java Erreur: Le schéma 'proj' n'a pas été trouvé, vérifiez si vous avez sur DBeaver dans le dossier Schemas un schéma nommé 'proj'"
             );
         }
         
-        System.out.print("Voulez vous reinitialiser la base de donnees ? (1 = Oui / 0 = Non) : ");
+        System.out.print("Voulez-vous réinitialiser la base de données ? (1 = Oui / 0 = Non) : ");
         int initChoice = scanner.nextInt();
 
         if(initChoice == 1){
@@ -39,7 +39,7 @@ class App{
 
         int choice = 0;
         while(choice != 3){
-            System.out.println("\n----------------Menu Principal----------------\nQuel menu a ouvrir: \n1. Menu Client\n2. Menu Professionnel\n3. Quitter"
+            System.out.println("\n----------------Menu Principal----------------\nQuel menu ouvrir: \n1. Menu Client\n2. Menu Professionnel\n3. Quitter"
                                 +"\n----------------Menu Principal----------------\n");
             choice = scanner.nextInt();
             
