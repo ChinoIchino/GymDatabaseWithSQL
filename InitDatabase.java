@@ -121,7 +121,6 @@ public class InitDatabase{
         addToTable.executeUpdate();
         addToTable.close();
     }
-
     private static void initAbonnement(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute("CREATE TABLE proj.abonnement (id INTEGER PRIMARY KEY, nom TEXT, prix DECIMAL);");
@@ -159,7 +158,6 @@ public class InitDatabase{
         
         addToTable.close();
     }
-
     private static void initAbonnementTemp(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute(
@@ -167,7 +165,6 @@ public class InitDatabase{
         );
         statTableCreation.close();
     }
-
     private static void initClient(Connection con) throws Exception{
         Statement statTableCreation = con.createStatement();
         statTableCreation.execute(
@@ -194,7 +191,7 @@ public class InitDatabase{
         addToTable.setString(3, "Kamil");
         addToTable.setInt(4, 2);
         addToTable.setDate(5, randomDate());
-        //Donne à notre table une valeur null avec comme type INTEGER, pour éviter les erreurs de type
+        //donne à notre table une valeur null avec comme type INTEGER, pour éviter les erreurs de type
         addToTable.setNull(6, java.sql.Types.INTEGER);
 
         addToTable.executeUpdate();
@@ -204,7 +201,7 @@ public class InitDatabase{
         addToTable.setString(3, "Brian");
         addToTable.setInt(4, 4);
         addToTable.setDate(5, randomDate());
-        addToTable.setInt(6, 1);
+        addToTable.setInt(6, 2);
 
         addToTable.executeUpdate();
 
@@ -233,6 +230,14 @@ public class InitDatabase{
         addToTable.setInt(6, 1);
 
         addToTable.executeUpdate();
+
+        addToTable.setInt(1, idCount++);
+        addToTable.setString(2, "Bouzaida");
+        addToTable.setString(3, "Sadok");
+        addToTable.setInt(4, 4);
+        addToTable.setDate(5, randomDate());
+        addToTable.setInt(6, 2);
+        addToTable.executeUpdate();
         addToTable.close();
     }
     private static void initCoach(Connection con) throws Exception{
@@ -257,7 +262,6 @@ public class InitDatabase{
         addToTable.executeUpdate();
         addToTable.close();
     }
-
     private static void initSessionPrivee(Connection con) throws Exception{
         Statement statCreationTable = con.createStatement();
         statCreationTable.execute("CREATE TABLE proj.sessionPrivee(id INTEGER PRIMARY KEY, coachAttitrer INTEGER REFERENCES proj.coach(id), dateDebut TIMESTAMP, dureeEnMin INTEGER);");
@@ -275,14 +279,14 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setInt(2, 1);
+        addToTable.setInt(2, 2);
         addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 60);
 
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setInt(2, 1);
+        addToTable.setInt(2, 2);
         addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 60);
 
@@ -296,14 +300,13 @@ public class InitDatabase{
         addToTable.executeUpdate();
 
         addToTable.setInt(1, idCount++);
-        addToTable.setInt(2, 1);
+        addToTable.setInt(2, 2);
         addToTable.setTimestamp(3, randomTimestamp());
         addToTable.setInt(4, 90);
 
         addToTable.executeUpdate();
         addToTable.close();
     }
-
     //Table associative entre les clients et les sessions privées
     private static void initClientSessionPrivee(Connection con) throws Exception{
         Statement statCreationTable = con.createStatement();
@@ -410,12 +413,12 @@ public class InitDatabase{
         addToTable.executeUpdate();
         addToTable.close();
     }
-
     private static void initMaintenance(Connection con) throws Exception{
         Statement generalStat = con.createStatement();
         generalStat.execute("CREATE TABLE proj.Maintenance(id INTEGER PRIMARY KEY, idMachine INTEGER REFERENCES proj.machine(id), dateDeMaintenance DATE);");
         generalStat.close();
     }
+
 
     //Misc functions
     private static void clearAll(Connection con) throws Exception{
@@ -451,4 +454,6 @@ public class InitDatabase{
 
         return Timestamp.valueOf(String.valueOf(year) + "-" + month + "-" + day + " " + hour + ":" + String.valueOf(min * 10) + ":00");
     }
+
 }
+
